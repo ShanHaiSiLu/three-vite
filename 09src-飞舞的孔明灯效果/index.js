@@ -47,6 +47,51 @@ camera.lookAt(scene.position);
 let axesHelper = new THREE.AxesHelper(25);
 scene.add(axesHelper);
 
+// 创建纹理加载对象，加载环境贴图
+const rgbeLoader = new RGBELoader();
+rgbeLoader.loadAsync("/flyLight/texture/2k.hdr").then((texture) => {
+  texture.mapping = THREE.EquirectangularReflectionMapping;
+  scene.background = texture;
+  scene.environment = texture;
+});
+
+// 创建模型加载对象，加载模型
+let glbLoader = new GLTFLoader();
+let ligntBox = null;
+glbLoader.load("/flyLight/model/flyLight.glb", (glb) => {
+  // scene.add(glb.scene);
+  ligntBox = glb.scene.children[1];
+  ligntBox.material = shaderMaterial;
+
+  for (var i = 0; i < 150; i++) {
+    let _glb = glb.scene.clone(true);
+    const x = Math.random() * 300 - 150;
+    const z = Math.random() * 300 - 150;
+    const y = Math.random() * 55 + 25;
+    _glb.position.set(x, y, z);
+    scene.add(_glb);
+
+    gsap.to(_glb.rotation, {
+      y: Math.PI,
+      duration: 5 + Math.random() * 10,
+      repeat: -1,
+    });
+
+    gsap.to(_glb.position, {
+      y: "+=" + Math.PI * Math.random() * 3,
+      duration: 5 + Math.random() * 10,
+      yoyo: true,
+      repeat: -1,
+    });
+    gsap.to(_glb.position, {
+      z: "+=" + Math.PI * Math.random() * 8,
+      duration: 5 + Math.random() * 10,
+      yoyo: true,
+      repeat: -1,
+    });
+  }
+});
+
 // 渲染器
 var renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
