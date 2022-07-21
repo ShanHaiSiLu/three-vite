@@ -29,19 +29,11 @@ var camera = new THREE.PerspectiveCamera(
 camera.position.set(0, 3, 3);
 camera.lookAt(scene.position);
 
-
 // 渲染器
 var renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setClearColor(0x0c0f0a, 1);
 document.body.appendChild(renderer.domElement);
-
-// 修改渲染器输出编码
-// renderer.outputEncoding = THREE.sRGBEncoding;
-// // 修改色调映射
-// renderer.toneMapping = THREE.ACESFilmicToneMapping;
-// 修改曝光程度
-// renderer.toneMappingExposure = 0.2;
 
 // 控制器
 var controls = new OrbitControls(camera, renderer.domElement);
