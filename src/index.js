@@ -1,9 +1,26 @@
 import * as THREE from "three";
 import gsap from "gsap";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import * as dat from "dat.gui";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader";
 import vertexShader from "./shader/basic/vertex.glsl?raw";
 import fragmentShader from "./shader/basic/fragment.glsl?raw";
+import Fireworks from "./firework.js";
+import hdrPath from "./assets/2k.hdr?url"
+import glbPath from "./assets/flyLight.glb?url"
+
+// 创建着色器材质
+const shaderMaterial = new THREE.ShaderMaterial({
+  // transparent: true,
+  // 顶点着色器
+  vertexShader: vertexShader,
+  // 片元着色器
+  fragmentShader: fragmentShader,
+  // 双面渲染
+  side: THREE.DoubleSide,
+  // 向着色器中传入变量
+  uniforms: {},
+});
 
 // 场景
 var scene = new THREE.Scene();
@@ -20,135 +37,73 @@ scene.add(ambient);
 var camera = new THREE.PerspectiveCamera(
   45,
   window.innerWidth / window.innerHeight,
-  0.00001,
+  1,
   1000
 );
-camera.position.set(0, 15, 0);
+camera.position.set(0, 0, 3);
 camera.lookAt(scene.position);
 
-// 导入纹理
-const textureLoader = new THREE.TextureLoader();
-const texture1 = textureLoader.load("./assets/textures/particles/9.png");
-const texture2 = textureLoader.load("./assets/textures/particles/10.png");
-const texture3 = textureLoader.load("./assets/textures/particles/11.png");
-
-// 设置星系旋臂参数
-const params = {
-  count: 100000, // 所有旋臂上顶点的数量的和（会被平均分配到各个旋臂，若不能整除则分配完为止）
-  size: 0.2, // 顶点大小
-  radius: 5, // 星系半径
-  branch: 4, // 分支数/旋臂数
-  color: "#ff6030", // 顶点颜色
-  rotateScale: 0, // 旋臂的弯曲程度
-  endColor: "#1b3984",
-};
-
-let geometry = null;
-let material = null;
-
-let startColor = new THREE.Color(params.color);
-let endColor = new THREE.Color(params.endColor);
-
-function generateGalaxy() {
-  geometry = new THREE.BufferGeometry();
-  let points = new Float32Array(params.count * 3);
-  let colors = new Float32Array(params.count * 3);
-  let imgIndex = new Float32Array(params.count); // 顶点使用哪张纹理贴图，在顶点着色器中获取并传入片元着色器
-  let uScale = new Float32Array(params.count);
-
-  for (var i = 0; i < params.count; i++) {
-    // 获取当前所处旋臂的角度（当前旋臂的旋转角度）
-    let branchAngel = (i % params.branch) * ((Math.PI * 2) / params.branch);
-
-    // 当前顶点到圆心的距离（当前顶点所在圆的半径）
-    let _r = Math.random() * params.radius * Math.random() ** 3;
-    // 离散参数，表示当前点分别向x/y/z偏移的分量。这里的几何意义实际上是点的坐标向中间的线趋近的过程。取[-1, 1]的范围是因为有些点的坐标处于负数范围（此句解释存疑）
-    let rendomX = ((Math.random() * 2 - 1) ** 3 * (params.radius - _r)) / 5;
-    let rendomY = ((Math.random() * 2 - 1) ** 3 * (params.radius - _r)) / 5;
-    let rendomZ = ((Math.random() * 2 - 1) ** 3 * (params.radius - _r)) / 5;
-
-    let _current = i * 3;
-
-    points[_current] =
-      Math.cos(branchAngel + _r * params.rotateScale) * _r + rendomX;
-    points[_current + 1] = 0 + rendomY;
-    points[_current + 2] =
-      Math.sin(branchAngel + _r * params.rotateScale) * _r + rendomZ;
-
-    // 生成混合色
-    let mixColor = startColor.clone();
-    mixColor.lerp(endColor, _r / params.radius);
-    // console.log(mixColor)
-    colors[_current] = mixColor.r;
-    colors[_current + 1] = mixColor.g;
-    colors[_current + 2] = mixColor.b;
-
-    uScale[i] = Math.random();
-    imgIndex[i] = i % 3;
-  }
-
-  console.log(imgIndex);
-
-  geometry.setAttribute("position", new THREE.BufferAttribute(points, 3));
-  geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-
-  geometry.setAttribute("uScale", new THREE.BufferAttribute(uScale, 1));
-  console.log(uScale);
-  geometry.setAttribute("imgIndex", new THREE.BufferAttribute(imgIndex, 1));
-
-  // material = new THREE.PointsMaterial({
-  //   color: new THREE.Color(params.color),
-  //   size: params.size,
-  //   sizeAttenuation: true, // 关闭点大小随着相机深度衰减
-  //   depthWrite: false,
-  //   blending: THREE.AdditiveBlending,
-  //   // map: particlesTexture,
-  //   // alphaMap: particlesTexture,
-  //   transparent: true,
-  //   vertexColors: true, // 优先使用顶点颜色
-  // });
-
-  material = new THREE.ShaderMaterial({
-    vertexShader: vertexShader,
-    fragmentShader: fragmentShader,
-    transparent: true,
-    depthWrite: false,
-    blending: THREE.AdditiveBlending, // 亮度叠加
-    sizeAttenuation: true, // 关闭点大小随着相机深度衰减
-    vertexColors: true, // 优先使用顶点颜色
-    uniforms: {
-      uTexture1: {
-        value: texture1,
-      },
-      uTexture2: {
-        value: texture2,
-      },
-      uTexture3: {
-        value: texture3,
-      },
-      uTime: {
-        value: 0,
-      },
-    },
-  });
-
-  let pointMesh = new THREE.Points(geometry, material);
-  scene.add(pointMesh);
-  console.log(pointMesh);
-
-  return pointMesh;
-}
-
-generateGalaxy();
-
-const axesHelper = new THREE.AxesHelper(5);
+// 辅助坐标
+let axesHelper = new THREE.AxesHelper(25);
 scene.add(axesHelper);
+
+// 创建纹理加载对象，加载环境贴图
+const rgbeLoader = new RGBELoader();
+rgbeLoader.loadAsync(hdrPath).then((texture) => {
+  texture.mapping = THREE.EquirectangularReflectionMapping;
+  scene.background = texture;
+  scene.environment = texture;
+});
+
+// 创建模型加载对象，加载模型
+let glbLoader = new GLTFLoader();
+let ligntBox = null;
+glbLoader.load(glbPath, (glb) => {
+  // scene.add(glb.scene);
+  ligntBox = glb.scene.children[1];
+  ligntBox.material = shaderMaterial;
+
+  for (var i = 0; i < 150; i++) {
+    let _glb = glb.scene.clone(true);
+    const x = Math.random() * 300 - 150;
+    const z = Math.random() * 300 - 150;
+    const y = Math.random() * 55 + 25;
+    _glb.position.set(x, y, z);
+    scene.add(_glb);
+
+    gsap.to(_glb.rotation, {
+      y: Math.PI,
+      duration: 5 + Math.random() * 10,
+      repeat: -1,
+    });
+
+    gsap.to(_glb.position, {
+      y: "+=" + Math.PI * Math.random() * 3,
+      duration: 5 + Math.random() * 10,
+      yoyo: true,
+      repeat: -1,
+    });
+    gsap.to(_glb.position, {
+      z: "+=" + Math.PI * Math.random() * 8,
+      duration: 5 + Math.random() * 10,
+      yoyo: true,
+      repeat: -1,
+    });
+  }
+});
 
 // 渲染器
 var renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setClearColor(0x0c0f0a, 1);
 document.body.appendChild(renderer.domElement);
+
+// 修改渲染器输出编码
+renderer.outputEncoding = THREE.sRGBEncoding;
+// 修改色调映射
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+// 修改曝光程度
+renderer.toneMappingExposure = 0.2;
 
 // 控制器
 var controls = new OrbitControls(camera, renderer.domElement);
@@ -159,10 +114,23 @@ var clock = new THREE.Clock();
 // 渲染函数
 function render() {
   const elapsedTime = clock.getElapsedTime();
-
-  material.uniforms.uTime.value = elapsedTime;
-
   renderer.render(scene, camera);
   requestAnimationFrame(render);
 }
 render();
+
+let fireworks = [];
+// 点击创建烟花
+window.addEventListener("click", () => {
+  let color = `hsl()`,
+    position = new THREE.Vector3(
+      Math.random() * 40 - 20,
+      Math.random() * 40 - 20,
+      7 + Math.random() * 25
+    );
+
+  let firework = new Fireworks(color, position);
+
+  firework.addScene();
+  fireworks.push(firework);
+});

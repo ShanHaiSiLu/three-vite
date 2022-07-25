@@ -1,39 +1,19 @@
 precision lowp float;
 
-uniform sampler2D uTexture1;
-uniform sampler2D uTexture2;
-uniform sampler2D uTexture3;
-
-varying float vImgIndex;
-varying vec3 vColor;
+varying vec4 vPosition;
+varying vec4 gPosition;
 
 void main() {
-    // gl_FragColor = vec4(1.0, 0.0, 1.0, 1.0);
+    vec4 topColor = vec4(1.0, 0.0, 0.0, 1.0);
+    vec4 bottomColor = vec4(1.0, 1.0, 0.0, 1.0);
+    // 这里的3.0是模型的高度，可以在建模软件中打开模型查看
+    vec4 mixColor = mix(bottomColor, topColor, gPosition.y / 3.0);
 
-    // 设置渐变圆
-    // float strength = distance(gl_PointCoord, vec2(0.5));
-    // strength = 1.0 - strength*2.0;
-    // gl_FragColor = vec4(strength);
-
-    // 圆形
-    // float strength = distance(gl_PointCoord, vec2(0.5));
-    // strength = 1.0 - step(0.5, strength);
-    // gl_FragColor = vec4(strength);
-
-    // 根据文理设置图案
-    // vec4 textureColor = texture2D(uTexture1, gl_PointCoord);
-    // gl_FragColor = vec4(textureColor.rgb, textureColor.r);
-
-    // 分局纹理坐标gl_PointCoord设置彩色图
-    vec4 textureColor;
-    if(vImgIndex == 0.0) {
-        textureColor = texture2D(uTexture1, gl_PointCoord);
-    } else if(vImgIndex == 1.0) {
-        textureColor = texture2D(uTexture2, gl_PointCoord);
+    if(gl_FrontFacing) {
+        // 正面，也就是孔明灯的外侧
+        gl_FragColor = vec4(mixColor.xyz - vPosition.y / 150.0 - 0.3, 1.0);
     } else {
-        textureColor = texture2D(uTexture3, gl_PointCoord);
+        // 内侧，也就是孔明灯的里侧
+        gl_FragColor = vec4(mixColor.xyz - vPosition.y / 150.0 - 0.1, 1.0);
     }
-
-    gl_FragColor = vec4(vColor, textureColor.r);
-
 }

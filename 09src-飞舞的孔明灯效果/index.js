@@ -8,6 +8,11 @@ import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader";
  */
 import vertexShader from "./shader/flyLight/vertex.glsl?raw";
 import fragmentShader from "./shader/flyLight/fragment.glsl?raw";
+/**
+ * @url 引入资源时在后缀名后加上?url后缀，表示【以路径方式引入此资源】
+ */
+import glb from "./assets/model/flyLight.glb?url"
+import hdr from "./assets/texture/2k.hdr?url"
 
 // 创建着色器材质
 const shaderMaterial = new THREE.ShaderMaterial({
@@ -49,7 +54,7 @@ scene.add(axesHelper);
 
 // 创建纹理加载对象，加载环境贴图
 const rgbeLoader = new RGBELoader();
-rgbeLoader.loadAsync("/flyLight/texture/2k.hdr").then((texture) => {
+rgbeLoader.loadAsync(hdr).then((texture) => {
   texture.mapping = THREE.EquirectangularReflectionMapping;
   scene.background = texture;
   scene.environment = texture;
@@ -58,7 +63,7 @@ rgbeLoader.loadAsync("/flyLight/texture/2k.hdr").then((texture) => {
 // 创建模型加载对象，加载模型
 let glbLoader = new GLTFLoader();
 let ligntBox = null;
-glbLoader.load("/flyLight/model/flyLight.glb", (glb) => {
+glbLoader.load(glb, (glb) => {
   // scene.add(glb.scene);
   ligntBox = glb.scene.children[1];
   ligntBox.material = shaderMaterial;
