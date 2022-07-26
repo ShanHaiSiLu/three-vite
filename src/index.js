@@ -6,8 +6,8 @@ import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader";
 import vertexShader from "./shader/basic/vertex.glsl?raw";
 import fragmentShader from "./shader/basic/fragment.glsl?raw";
 import Fireworks from "./firework.js";
-import hdrPath from "./assets/2k.hdr?url"
-import glbPath from "./assets/flyLight.glb?url"
+import hdrPath from "./assets/2k.hdr?url";
+import glbPath from "./assets/flyLight.glb?url";
 
 // 创建着色器材质
 const shaderMaterial = new THREE.ShaderMaterial({
@@ -40,7 +40,7 @@ var camera = new THREE.PerspectiveCamera(
   1,
   1000
 );
-camera.position.set(0, 0, 3);
+camera.position.set(10, 10, 65);
 camera.lookAt(scene.position);
 
 // 辅助坐标
@@ -48,14 +48,15 @@ let axesHelper = new THREE.AxesHelper(25);
 scene.add(axesHelper);
 
 // 创建纹理加载对象，加载环境贴图
-const rgbeLoader = new RGBELoader();
-rgbeLoader.loadAsync(hdrPath).then((texture) => {
-  texture.mapping = THREE.EquirectangularReflectionMapping;
-  scene.background = texture;
-  scene.environment = texture;
-});
+// const rgbeLoader = new RGBELoader();
+// rgbeLoader.loadAsync(hdrPath).then((texture) => {
+//   texture.mapping = THREE.EquirectangularReflectionMapping;
+//   scene.background = texture;
+//   scene.environment = texture;
+// });
 
 // 创建模型加载对象，加载模型
+/*
 let glbLoader = new GLTFLoader();
 let ligntBox = null;
 glbLoader.load(glbPath, (glb) => {
@@ -91,7 +92,7 @@ glbLoader.load(glbPath, (glb) => {
     });
   }
 });
-
+*/
 // 渲染器
 var renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -110,27 +111,31 @@ var controls = new OrbitControls(camera, renderer.domElement);
 
 // 时钟
 var clock = new THREE.Clock();
+// 烟花组
+let fireworks = [];
 
 // 渲染函数
 function render() {
   const elapsedTime = clock.getElapsedTime();
   renderer.render(scene, camera);
   requestAnimationFrame(render);
+
+  fireworks.forEach((item) => item.update());
 }
+
 render();
 
-let fireworks = [];
 // 点击创建烟花
 window.addEventListener("click", () => {
-  let color = `hsl()`,
-    position = new THREE.Vector3(
-      Math.random() * 40 - 20,
-      Math.random() * 40 - 20,
-      7 + Math.random() * 25
-    );
+  let color = `hsl(${Math.floor(Math.random() * 360)}, 100%, 80%)`,
+    position = {
+      x: Math.random() * 40 - 20,
+      z: Math.random() * 40 - 20,
+      y: 7 + Math.random() * 25,
+    };
 
   let firework = new Fireworks(color, position);
 
-  firework.addScene();
+  firework.addScene(scene, camera);
   fireworks.push(firework);
 });
