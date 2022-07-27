@@ -61,7 +61,6 @@ export default class Fireworks {
     this.fireworkGeometry = new THREE.BufferGeometry();
 
     // 粒子数量
-    // let fireworkCount = 3,
     let fireworkCount = 150 + Math.floor(Math.random() * 100),
       // 位置属性，初始位置统一设定为上一阶段粒子的结束位置
       fireworsPositions = new Float32Array(fireworkCount * 3),
