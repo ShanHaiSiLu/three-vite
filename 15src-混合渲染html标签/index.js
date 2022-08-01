@@ -115,7 +115,6 @@ function render() {
   const elapsed = clock.getElapsedTime();
 
   moon.position.set(Math.sin(elapsed) * 5, 0, Math.cos(elapsed) * 5);
-  // moon.position.set(0, 0, 5);
 
   // 监测标签的显示
   // 将标签的坐标转化为归一化坐标
