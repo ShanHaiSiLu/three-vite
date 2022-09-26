@@ -20,10 +20,74 @@
         width: 100%;
         height: 100%;
       }
+
+      .map-wra {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 300px;
+        height: 260px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        overflow: hidden;
+      }
+      .map-wra img.map {
+        width: 100%;
+        height: 100%;
+      }
+      .map-wra img.tag {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 30px;
+        height: 30px;
+        z-index: 1;
+      }
+
+      .loading-wra {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 100;
+        overflow: hidden;
+      }
+      .loading-wra img.png {
+        width: 100%;
+        height: 100%;
+      }
+      .loading-wra span.tip {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      .loading-wra span.tip * {
+        vertical-align: middle;
+      }
+      /* .loading-wra span {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      } */
     </style>
-    <title>全景看房</title>
+    <title>全景看房-新</title>
   </head>
   <body>
+    <div class="map-wra">
+      <img src="./assets/imgs/map.gif" alt="" class="map" />
+      <img src="./assets/imgs/location.png" alt="" class="tag" />
+    </div>
+    <div class="loading-wra">
+      <img src="./assets/imgs/loading.png" alt="" class="png" />
+
+      <span class="tip">
+        <img src="./assets/imgs/loading.gif" alt="" class="gif" />
+        <span class="text"> 新房加载中（<b class="pre">0.00 %</b>） </span>
+      </span>
+    </div>
     <script type="module" src="./index.js"></script>
   </body>
 </html>
